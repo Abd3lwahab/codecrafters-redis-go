@@ -43,7 +43,6 @@ func handleConnection(conn net.Conn) {
 		}
 
 		msg := string(buffer[:len])
-
 		fmt.Println("Received data: ", msg)
 
 		_, err = conn.Write([]byte("+PONG\r\n"))
