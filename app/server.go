@@ -8,11 +8,22 @@ import (
 	"strings"
 )
 
-const respSymbols = "+-:$*"
+const (
+	RESP_SYMBOLS = "+-:$*"
+	NOT_FOUND    = "$-1\r\n"
+)
 
 var commandHandlers = map[string]func([]string) string{
-	"ping": PONG,
-	"echo": ECHO,
+	"ping": Pong,
+	"echo": Echo,
+	"get":  Get,
+	"set":  Set,
+}
+
+var db = struct {
+	data map[string]string
+}{
+	data: make(map[string]string),
 }
 
 func main() {
@@ -70,7 +81,7 @@ func ParseRESPCommand(command string) (string, []string) {
 	var elements []string
 
 	for _, arg := range args {
-		if len(arg) == 0 || strings.Contains(respSymbols, string(arg[0])) {
+		if len(arg) == 0 || strings.Contains(RESP_SYMBOLS, string(arg[0])) {
 			continue
 		}
 
@@ -80,11 +91,30 @@ func ParseRESPCommand(command string) (string, []string) {
 	return elements[0], elements[1:]
 }
 
-func PONG([]string) string {
+func Pong([]string) string {
 	return "+PONG\r\n"
 }
 
-func ECHO(args []string) string {
+func Echo(args []string) string {
 	text := args[0]
 	return fmt.Sprintf("+%s\r\n", text)
+}
+
+func Get(args []string) string {
+	key := args[0]
+	value := db.data[key]
+
+	if value == "" {
+		return NOT_FOUND
+	}
+
+	return fmt.Sprintf("+%s\r\n", value)
+}
+
+func Set(args []string) string {
+	key := args[0]
+	value := args[1]
+
+	db.data[key] = value
+	return "+OK\r\n"
 }
