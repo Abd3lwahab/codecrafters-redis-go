@@ -129,8 +129,8 @@ func Set(args []string) string {
 	var expire *time.Time = nil
 
 	if len(args) > 2 {
-		if args[2] != "px" {
-			expireMilliSeconds, _ := strconv.Atoi(args[2])
+		if args[2] == "px" {
+			expireMilliSeconds, _ := strconv.Atoi(args[3])
 			time := time.Now().Add(time.Duration(expireMilliSeconds) * time.Millisecond)
 			expire = &time
 		}
