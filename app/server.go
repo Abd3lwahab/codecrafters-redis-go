@@ -111,8 +111,6 @@ func Get(args []string) string {
 	key := args[0]
 	pair := db.data[key]
 
-	fmt.Println(pair)
-
 	if pair == (Pair{}) {
 		return NOT_FOUND
 	}
@@ -131,7 +129,7 @@ func Set(args []string) string {
 	var expire *time.Time = nil
 
 	if len(args) > 2 {
-		if args[2] != "ex" {
+		if args[2] != "px" {
 			expireMilliSeconds, _ := strconv.Atoi(args[2])
 			time := time.Now().Add(time.Duration(expireMilliSeconds) * time.Millisecond)
 			expire = &time
