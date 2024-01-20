@@ -74,7 +74,7 @@ func ParseRESPCommand(command string) (string, []string) {
 			continue
 		}
 
-		elements = append(elements, arg)
+		elements = append(elements, strings.ToUpper(arg))
 	}
 
 	return elements[0], elements[1:]
