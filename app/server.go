@@ -11,8 +11,8 @@ import (
 const respSymbols = "+-:$*"
 
 var commandHandlers = map[string]func([]string) string{
-	"PING": PONG,
-	"ECHO": ECHO,
+	"ping": PONG,
+	"echo": ECHO,
 }
 
 func main() {
@@ -74,7 +74,7 @@ func ParseRESPCommand(command string) (string, []string) {
 			continue
 		}
 
-		elements = append(elements, strings.ToUpper(arg))
+		elements = append(elements, strings.ToLower(arg))
 	}
 
 	return elements[0], elements[1:]
