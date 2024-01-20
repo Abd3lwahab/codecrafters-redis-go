@@ -132,8 +132,8 @@ func Set(args []string) string {
 
 	if len(args) > 2 {
 		if args[2] != "ex" {
-			expireSeconds, _ := strconv.Atoi(args[3])
-			time := time.Now().Add(time.Duration(expireSeconds) * time.Second)
+			expireMilliSeconds, _ := strconv.Atoi(args[2])
+			time := time.Now().Add(time.Duration(expireMilliSeconds) * time.Millisecond)
 			expire = &time
 		}
 	}
