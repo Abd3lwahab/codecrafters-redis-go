@@ -5,7 +5,15 @@ import (
 	"io"
 	"net"
 	"os"
+	"strings"
 )
+
+const respSymbols = "+-:$*"
+
+var commandHandlers = map[string]func([]string) string{
+	"PING": PONG,
+	"ECHO": ECHO,
+}
 
 func main() {
 	l, err := net.Listen("tcp", "0.0.0.0:6379")
@@ -45,9 +53,38 @@ func handleConnection(conn net.Conn) {
 		msg := string(buffer[:len])
 		fmt.Println("Received data: ", msg)
 
-		_, err = conn.Write([]byte("+PONG\r\n"))
-		if err != nil {
-			fmt.Println("Error writing: ", err.Error())
+		command, args := ParseRESPCommand(msg)
+
+		if handler, ok := commandHandlers[command]; ok {
+			response := handler(args)
+			conn.Write([]byte(response))
+		} else {
+			conn.Write([]byte("-ERR unknown command '" + command + "'\r\n"))
 		}
 	}
+}
+
+func ParseRESPCommand(command string) (string, []string) {
+	args := strings.Split(command, "\r\n")
+
+	var elements []string
+
+	for _, arg := range args {
+		if len(arg) == 0 || strings.Contains(respSymbols, string(arg[0])) {
+			continue
+		}
+
+		elements = append(elements, arg)
+	}
+
+	return elements[0], elements[1:]
+}
+
+func PONG([]string) string {
+	return "+PONG\r\n"
+}
+
+func ECHO(args []string) string {
+	text := args[0]
+	return fmt.Sprintf("+%s\r\n", text)
 }
