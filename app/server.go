@@ -5,7 +5,9 @@ import (
 	"io"
 	"net"
 	"os"
+	"strconv"
 	"strings"
+	"time"
 )
 
 const (
@@ -20,10 +22,15 @@ var commandHandlers = map[string]func([]string) string{
 	"set":  Set,
 }
 
+type Pair struct {
+	value  string
+	expire *time.Time
+}
+
 var db = struct {
-	data map[string]string
+	data map[string]Pair
 }{
-	data: make(map[string]string),
+	data: make(map[string]Pair),
 }
 
 func main() {
@@ -102,19 +109,36 @@ func Echo(args []string) string {
 
 func Get(args []string) string {
 	key := args[0]
-	value := db.data[key]
+	pair := db.data[key]
 
-	if value == "" {
+	fmt.Println(pair)
+
+	if pair == (Pair{}) {
 		return NOT_FOUND
 	}
 
-	return fmt.Sprintf("+%s\r\n", value)
+	if pair.expire != nil && pair.expire.Before(time.Now()) {
+		delete(db.data, key)
+		return NOT_FOUND
+	}
+
+	return fmt.Sprintf("+%s\r\n", pair.value)
 }
 
 func Set(args []string) string {
 	key := args[0]
 	value := args[1]
+	var expire *time.Time = nil
 
-	db.data[key] = value
+	if len(args) > 2 {
+		if args[2] != "ex" {
+			expireSeconds, _ := strconv.Atoi(args[3])
+			time := time.Now().Add(time.Duration(expireSeconds) * time.Second)
+			expire = &time
+		}
+	}
+
+	db.data[key] = Pair{value, expire}
+
 	return "+OK\r\n"
 }
